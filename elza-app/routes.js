@@ -19,8 +19,11 @@ module.exports = function(app){
   app.get('/get_test_student/:name', function(req, res){
       controller.get_test_student(req, res);
   })
-  
-//  app.get('/delivery_parsel/:holder', function(req, res){
-//    controller.delivery_parsel(req, res);
-//  });
+  app.get('/prepare_exam/:exam', function(req, res){
+      controller.prepare_exam(req, res);
+  })
+  app.get('/take_test/:exam', function(req, res){
+      controller.take_test(req, res);
+  })
+
 }

@@ -15,7 +15,7 @@ var os = require('os');
 
 var fabric_client = new Fabric_Client();
 
-console.log("submit recording of an accepted parsel: ");
+console.log("submit recording of generated test for group: ");
 
 var array = req.params.parsel.split("-");
 

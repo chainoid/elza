@@ -4,7 +4,7 @@
 */
 /*
  * Chaincode Invoke
- 
+
 This code is based on code written by the Hyperledger Fabric community.
   Original code can be found here: https://github.com/hyperledger/fabric-samples/blob/release/fabcar/invoke.js
 
@@ -65,9 +65,9 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
     // send proposal to endorser
     var request = {
         //targets : --- letting this default to the peers assigned to the channel
-        chaincodeId: 'tuna-app',
-        fcn: 'changeTunaHolder',
-        args: [key, holder],
+        chaincodeId: 'elza-rec',
+        fcn: 'takeTheTest',
+        args: [key, student, course, rate],
         chainId: 'mychannel',
         txId: tx_id
     };

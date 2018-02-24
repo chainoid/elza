@@ -19,7 +19,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	sc "github.com/hyperledger/fabric/protos/peer"
 )
@@ -95,8 +94,8 @@ Will add test data to our network
  */
 func (s *SmartContract) initLedger(APIstub shim.ChaincodeStubInterface) sc.Response {
 	groups := []Group{
-		Group{GroupId: "001",  GroupName: "ABC17",  GroupDesc: "Description for ABC17"},
-		Group{GroupId: "002",  GroupName: "ABC18",  GroupDesc: "Description for ABC18"},
+		Group{GroupId: "001",  GroupName: "AC17",  GroupDesc: "Description for AB17"},
+		Group{GroupId: "002",  GroupName: "AC18",  GroupDesc: "Description for AB18"},
 	}
 
 	i := 0

@@ -19,7 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-
+  "time"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	sc "github.com/hyperledger/fabric/protos/peer"
 )
@@ -33,11 +33,11 @@ Structure tags are used by encoding/json library
 */
 type Stest struct {
 
-	StestId   string  `json:"testId"`
+	StestId string  `json:"testId"`
 
-	GroupId  string  `json:"groupId"`
+	Group  string  `json:"group"`
 
-	CourseId string  `json:"courseId"`
+	Course string  `json:"course"`
 
 	Teacher  string  `json:"teacher"`
 
@@ -81,23 +81,14 @@ func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response 
 		return s.createTestForGroup(APIstub, args)
 	} else if function == "queryTestByStudent" {
 		return s.queryTestByStudent(APIstub, args)
+	} else if function == "prepareForExam" {
+		return s.prepareForExam(APIstub, args)
+	} else if function == "takeTheTest" {
+		return s.takeTheTest(APIstub, args)
 	}
-
-/*
-Student
-	else if function == "queryTestByCourse" {
-		return s.queryTestByCourse(APIstub)
-	} else if function == "queryTestByGroup" {
-		return s.queryTestByGroup(APIstub, args)
-	} else if function == "queryTestByTeacher" {
-		return s.queryTestByStudent(APIstub, args)
-	}
-
-	*/
 
 	return shim.Error("Invalid Smart Contract function name.")
 }
-
 
 /*
  * The initLedger method *
@@ -105,8 +96,8 @@ Will add test data to our network
  */
 func (s *SmartContract) initLedger(APIstub shim.ChaincodeStubInterface) sc.Response {
 	stests := []Stest{
-		Stest{StestId: "001",  GroupId: "001",  CourseId: "Maths",   Teacher: "Ivanov", Student: "Alex", Rate: "", StestTS: "", StestDesc: "" },
-		Stest{StestId: "002",  GroupId: "001",  CourseId: "Phisycs", Teacher: "Petrov", Student: "Alex", Rate: "", StestTS: "", StestDesc: "" },
+		Stest{StestId: "001",  Group: "AB17",  Course: "Maths",   Teacher: "Ivanov", Student: "AB1701", Rate: "", StestTS: "", StestDesc: "" },
+		Stest{StestId: "002",  Group: "AB17",  Course: "Phisycs", Teacher: "Petrov", Student: "AB1701", Rate: "", StestTS: "", StestDesc: "" },
 	}
 
 	i := 0
@@ -120,7 +111,6 @@ func (s *SmartContract) initLedger(APIstub shim.ChaincodeStubInterface) sc.Respo
 
 	return shim.Success(nil)
 }
-
 
 /*
  * The queryAllTests method *
@@ -212,7 +202,10 @@ func (s *SmartContract) queryTestById(APIstub shim.ChaincodeStubInterface, args 
 
 	for i < counter {
 
-   var stest = Stest{StestId: strconv.Itoa(startIndex + i),  GroupId: args[1],  CourseId: args[3],   Teacher: args[4], Student: "Alex", Rate: "", StestTS: "", StestDesc: "" }
+  // Combine student id
+  studentName := args[1] + strconv.Itoa(i);
+
+   var stest = Stest{StestId: strconv.Itoa(startIndex + i),  Group: args[1],  Course: args[3],   Teacher: args[4], Student: studentName, Rate: "", StestTS: "", StestDesc: "" }
 
  	 stestAsBytes, _ := json.Marshal(stest)
 
@@ -230,10 +223,10 @@ func (s *SmartContract) queryTestById(APIstub shim.ChaincodeStubInterface, args 
 }
 
 /*
- * The querySender method *
-allows for assessing all the records from selected sender
+ * The queryTestByStudent method *
+   allows for assessing all the records from selected student
 
-Returns JSON string containing results.
+    Returns JSON string containing results.
  */
 
 func (s *SmartContract) queryTestByStudent(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
@@ -295,49 +288,21 @@ func (s *SmartContract) queryTestByStudent(APIstub shim.ChaincodeStubInterface, 
 	return shim.Success(buffer.Bytes())
 }
 
-
 /*
- * The deliveryParsel method *
-The data in the world state can be updated with who has possession.
-This function takes in 2 arguments, parsel id and timestamp of delivery.
+ * The prepareForExam method *
+   allows for assessing all the records from selected group/course
+
+	 Returns JSON string containing results.
  */
-/*func (s *SmartContract) deliveryParsel(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+
+func (s *SmartContract) prepareForExam(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+
+	startKey := "0"
+	endKey := "9999"
 
 	if len(args) != 2 {
 		return shim.Error("Incorrect number of arguments. Expecting 2")
 	}
-
-	parselAsBytes, _ := APIstub.GetState(args[0])
-	if parselAsBytes == nil {
-		return shim.Error("Could not locate parsel")
-	}
-	parsel := Parsel{}
-
-	json.Unmarshal(parselAsBytes, &parsel)
-	// Normally check that the specified argument is a valid holder of parsel
-	// we are skipping this check for this example
-	parsel.ReceiverTS = time.Now().Format(time.RFC1123Z)
-
-	parselAsBytes, _ = json.Marshal(parsel)
-	err := APIstub.PutState(args[0], parselAsBytes)
-	if err != nil {
-		return shim.Error(fmt.Sprintf("Failed to change status of parsel: %s", args[0]))
-	}
-
-	return shim.Success(nil)
-}
-*/
-
-/*
- * The queryAllGroups method *
-allows for assessing all the records added to the ledger(all groups in the delivery system)
-This method does not take any arguments. Returns JSON string containing results.
- */
-/*
-func (s *SmartContract) queryAllGroups(APIstub shim.ChaincodeStubInterface) sc.Response {
-
-	startKey := "0"
-	endKey := "9999"
 
 	resultsIterator, err := APIstub.GetStateByRange(startKey, endKey)
 	if err != nil {
@@ -347,6 +312,7 @@ func (s *SmartContract) queryAllGroups(APIstub shim.ChaincodeStubInterface) sc.R
 
 	// buffer is a JSON array containing QueryResults
 	var buffer bytes.Buffer
+
 	buffer.WriteString("[")
 
 	bArrayMemberAlreadyWritten := false
@@ -355,30 +321,79 @@ func (s *SmartContract) queryAllGroups(APIstub shim.ChaincodeStubInterface) sc.R
 		if err != nil {
 			return shim.Error(err.Error())
 		}
-		// Add comma before array members,suppress it for the first array member
-		if bArrayMemberAlreadyWritten == true {
-			buffer.WriteString(",")
-		}
-		buffer.WriteString("{\"Key\":")
-		buffer.WriteString("\"")
-		buffer.WriteString(queryResponse.Key)
-		buffer.WriteString("\"")
 
-		buffer.WriteString(", \"Record\":")
-		// Record is a JSON object, so we write as-is
-		buffer.WriteString(string(queryResponse.Value))
-		buffer.WriteString("}")
-		bArrayMemberAlreadyWritten = true
+		// Create an object
+		stest := Stest{}
+		// Unmarshal record to stest object
+		json.Unmarshal(queryResponse.Value, &stest)
+
+		// Add only filtered ny sender records
+
+		if (stest.Group == args[0]  && stest.Course == args[1]) {
+
+		// Add comma before array members,suppress it for the first array member
+			if bArrayMemberAlreadyWritten == true {
+				buffer.WriteString(",")
+			}
+
+			buffer.WriteString("{\"Key\":")
+			buffer.WriteString("\"")
+			buffer.WriteString(queryResponse.Key)
+			buffer.WriteString("\"")
+
+			buffer.WriteString(", \"Record\":")
+			// Record is a JSON object, so we write as-is
+			buffer.WriteString(string(queryResponse.Value))
+			buffer.WriteString("}")
+			bArrayMemberAlreadyWritten = true
+	    }
 	}
 	buffer.WriteString("]")
 
-	fmt.Printf("- queryAllGroups:\n%s\n", buffer.String())
+	if bArrayMemberAlreadyWritten == false {
+		return shim.Error("No group/course found")
+	}
+
+	fmt.Printf("- prepareForExam:\n%s\n", buffer.String())
 
 	return shim.Success(buffer.Bytes())
 }
-*/
 
+/*
+ * The takeTheTest method *
+ * The data in the stest state can be updated .
+ */
+func (s *SmartContract) takeTheTest(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
 
+	if len(args) != 4 {
+		return shim.Error("Incorrect number of arguments. Expecting 4")
+	}
+
+	stestAsBytes, _ := APIstub.GetState(args[0])
+	if stestAsBytes == nil {
+		return shim.Error("Could not locate test")
+	}
+	stest := Stest{}
+
+	json.Unmarshal(stestAsBytes, &stest)
+
+	if stest.Rate != "" {
+		return shim.Error(fmt.Sprintf("Exam already done"))
+	}
+
+	// Normally check that the specified argument is a valid participant of exam
+	// we are skipping this check for this example
+	stest.StestTS = time.Now().Format(time.RFC1123Z)
+  stest.Rate = args[3]
+
+	stestAsBytes, _ = json.Marshal(stest)
+	err := APIstub.PutState(args[0], stestAsBytes)
+	if err != nil {
+		return shim.Error(fmt.Sprintf("Failed to change status of exam: %s", args[0]))
+	}
+
+	return shim.Success(nil)
+}
 
 /*
  * main function *

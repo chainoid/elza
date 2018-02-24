@@ -235,6 +235,10 @@ return{
 
 		        // build up the request for the orderer to have the transaction committed
 		        var request = {
+//  app.get('/delivery_parsel/:holder', function(req, res){
+//    controller.delivery_parsel(req, res);
+//  });
+
 		            proposalResponses: proposalResponses,
 		            proposal: proposal
 		        };
@@ -247,6 +251,10 @@ return{
 
 		        var sendPromise = channel.sendTransaction(request);
 		        promises.push(sendPromise); //we want the send transaction first, so that we know where to check status
+
+//  app.get('/delivery_parsel/:holder', function(req, res){
+//    controller.delivery_parsel(req, res);
+//  });
 
 		        // get an eventhub once the fabric client has a user assigned. The user
 		        // is required bacause the event registration must be signed
@@ -406,6 +414,10 @@ return{
 		var member_user = null;
 		var store_path = path.join(os.homedir(), '.hfc-key-store');
 		console.log('Store path:'+store_path);
+//  app.get('/delivery_parsel/:holder', function(req, res){
+//    controller.delivery_parsel(req, res);
+//  });
+
 		var tx_id = null;
 
 		// create the key value store as defined in the fabric-client/config/default.json 'key-value-store' setting
@@ -612,10 +624,17 @@ return{
 		});
 	},
 
-	get_parsel: function(req, res){
+	prepare_exam: function(req, res){
 
 		var fabric_client = new Fabric_Client();
-		var key = req.params.id
+
+		var array = req.params.exam.split("-");
+		console.log(array);
+
+		var group = array[0]
+		var course = array[1]
+
+		var exam = req.params.exam
 
 		// setup the fabric network
 		var channel = fabric_client.newChannel('mychannel');
@@ -631,63 +650,66 @@ return{
 		// create the key value store as defined in the fabric-client/config/default.json 'key-value-store' setting
 		Fabric_Client.newDefaultKeyValueStore({ path: store_path
 		}).then((state_store) => {
-		    // assign the store to the fabric client
-		    fabric_client.setStateStore(state_store);
-		    var crypto_suite = Fabric_Client.newCryptoSuite();
-		    // use the same location for the state store (where the users' certificate are kept)
-		    // and the crypto store (where the users' keys are kept)
-		    var crypto_store = Fabric_Client.newCryptoKeyStore({path: store_path});
-		    crypto_suite.setCryptoKeyStore(crypto_store);
-		    fabric_client.setCryptoSuite(crypto_suite);
+				// assign the store to the fabric client
+				fabric_client.setStateStore(state_store);
+				var crypto_suite = Fabric_Client.newCryptoSuite();
+				// use the same location for the state store (where the users' certificate are kept)
+				// and the crypto store (where the users' keys are kept)
+				var crypto_store = Fabric_Client.newCryptoKeyStore({path: store_path});
+				crypto_suite.setCryptoKeyStore(crypto_store);
+				fabric_client.setCryptoSuite(crypto_suite);
 
-		    // get the enrolled user from persistence, this user will sign all requests
-		    return fabric_client.getUserContext('user1', true);
+				// get the enrolled user from persistence, this user will sign all requests
+				return fabric_client.getUserContext('user1', true);
 		}).then((user_from_store) => {
-		    if (user_from_store && user_from_store.isEnrolled()) {
-		        console.log('Successfully loaded user1 from persistence');
-		        member_user = user_from_store;
-		    } else {
-		        throw new Error('Failed to get user1.... run registerUser.js');
-		    }
+				if (user_from_store && user_from_store.isEnrolled()) {
+						console.log('Successfully loaded user1 from persistence');
+						member_user = user_from_store;
+				} else {
+						throw new Error('Failed to get user1.... run registerUser.js');
+				}
 
-		    // getParsel - requires 1 argument, ex: args: ['4'],
-		    const request = {
-		        chaincodeId: 'posta-one',
-		        txId: tx_id,
-		        fcn: 'queryParsel',
-		        args: [key]
-		    };
+				// getParsel - requires 1 argument, ex: args: ['4'],
+				const request = {
+						chaincodeId: 'elza-rec',
+						txId: tx_id,
+						fcn: 'prepareForExam',
+						args: [group, course]
+				};
 
-		    // send the query proposal to the peer
-		    return channel.queryByChaincode(request);
+				// send the query proposal to the peer
+				return channel.queryByChaincode(request);
 		}).then((query_responses) => {
-		    console.log("Query has completed, checking results");
-		    // query_responses could have more than one  results if there multiple peers were used as targets
-		    if (query_responses && query_responses.length == 1) {
-		        if (query_responses[0] instanceof Error) {
-		            console.error("error from query = ", query_responses[0]);
-		            res.send("Could not locate parsel")
+				console.log("Query has completed, checking results");
+				// query_responses could have more than one  results if there multiple peers were used as targets
+				if (query_responses && query_responses.length == 1) {
+						if (query_responses[0] instanceof Error) {
+								console.error("error from query = ", query_responses[0]);
+								res.send("No group/course found")
 
-		        } else {
-		            console.log("Response is ", query_responses[0].toString());
-		            res.send(query_responses[0].toString())
-		        }
-		    } else {
-		        console.log("No payloads were returned from query");
-		        res.send("Could not locate parsel")
-		    }
+						} else {
+								console.log("Response is ", query_responses[0].toString());
+								res.json(JSON.parse(query_responses[0].toString()));
+								//res.send(query_responses[0].toString())
+						}
+				} else {
+						console.log("No payloads were returned from query");
+						res.send("No group/course found")
+				}
 		}).catch((err) => {
-		    console.error('Failed to query successfully :: ' + err);
-		    res.send("Could not locate parsel")
+				console.error('Failed to query successfully :: ' + err);
+				res.send("No group/course found")
 		});
 	},
 
-	delivery_parsel: function(req, res){
-		console.log("put a timestamp, changing owner of parsel on delivery: ");
+	take_test: function(req, res){
+		console.log("Put a timestamp of exam, rate the student: ");
 
-		var array = req.params.holder.split("-");
+		var array = req.params.exam.split("-");
 		var key = array[0]
-		var deliveryTS = array[1];
+		var student = array[1];
+		var course = array[2];
+		var rate   = array[3];
 
 		var fabric_client = new Fabric_Client();
 
@@ -733,9 +755,9 @@ return{
 		    // send proposal to endorser
 		    var request = {
 		        //targets : --- letting this default to the peers assigned to the channel
-		        chaincodeId: 'posta-one',
-		        fcn: 'deliveryParsel',
-		        args: [key, deliveryTS],
+		        chaincodeId: 'elza-rec',
+		        fcn: 'takeTheTest',
+		        args: [key, student, course, rate],
 		        chainId: 'mychannel',
 		        txId: tx_id
 		    };
@@ -813,7 +835,7 @@ return{
 		        return Promise.all(promises);
 		    } else {
 		        console.error('Failed to send Proposal or receive valid response. Response null or status is not 200. exiting...');
-		        res.send("Error: no parsel found");
+		        res.send("Could not locate test");
 		        // throw new Error('Failed to send Proposal or receive valid response. Response null or status is not 200. exiting...');
 		    }
 		}).then((results) => {
@@ -824,7 +846,7 @@ return{
 		        res.json(tx_id.getTransactionID())
 		    } else {
 		        console.error('Failed to order the transaction. Error code: ' + response.status);
-		        res.send("Error: no parsel found");
+		        res.send("Could not locate test");
 		    }
 
 		    if(results && results[1] && results[1].event_status === 'VALID') {
@@ -835,7 +857,7 @@ return{
 		    }
 		}).catch((err) => {
 		    console.error('Failed to invoke successfully :: ' + err);
-		    res.send("Error: no parsel found");
+		    res.send("Could not locate test");
 		});
 
 	}

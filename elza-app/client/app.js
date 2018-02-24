@@ -15,11 +15,17 @@ app.controller('appController', function($scope, appFactory){
 	$("#error_sender").hide();
 	$("#error_query_id").hide();
 	$("#error_query_student").hide();
+	$("#error_prepare_exam").hide();
+	$("#error_pass_exam").hide();
+	$("#error_exam_source").hide();
+	$("#error_old_exam").hide();
+  $("#success_exam").hide();
+
 
 	$scope.queryAllGroups = function(){
 
 		appFactory.queryAllGroups(function(data){
-			var array = [];
+			var array = [];exam
 			for (var i = 0; i < data.length; i++){
 				parseInt(data[i].Key);
 				data[i].Record.Key = parseInt(data[i].Key);
@@ -108,27 +114,64 @@ app.controller('appController', function($scope, appFactory){
 		});
 	}
 
-//$scope.acceptParsel = function(){
-//
-//		appFactory.acceptParsel($scope.parsel, function(data){
-//			$scope.add_parsel = data;
-//			$("#success_create").show();
-//		});
-//	}
+	$scope.prepareForExam = function(){
 
-	//$scope.takeTheTest = function(){
-  //
-	//	appFactory.takeTheTest($scope.holder, function(data){
-	//		$scope.delivery_parsel = data;
-			//if ($scope.delivery_parsel == "Error: no parsel found"){
-			//	$("#error_holder").show();
-			//	$("#success_holder").hide();
-			//} else{
-			//	$("#success_holder").show();
-			//	$("#error_holder").hide();
-			//}
-	//	});
-	// }
+  	var exam = $scope.exam;
+
+		appFactory.prepareForExam(exam, function(data){
+
+			if (data  == "No group/course found"){
+				console.log()
+				$("#error_prepare_exam").show();
+			} else{
+				$("#error_prepare_exam").hide();
+			}
+
+			var array = [];
+			for (var i = 0; i < data.length; i++){
+				parseInt(data[i].Key);
+				data[i].Record.Key = parseInt(data[i].Key);
+				array.push(data[i].Record);
+		}
+			array.sort(function(a, b) {
+			    return parseFloat(a.Key) - parseFloat(b.Key);
+			});
+			$scope.exam_list = array;
+		});
+	}
+
+  $scope.takeTheTest = function(){
+
+		appFactory.takeTheTest($scope.progress, function(data){
+
+				if ($scope.exam_result == "Could not locate test"){
+					$("#error_exam_source").show();
+					$("#error_old_exam").hide();
+					$("#success_exam").hide();
+				}
+
+				if ($scope.exam_result == "Could not locate test"){
+						$("#error_old_exam").show();
+						$("#error_exam_source").hide();
+						$("#success_exam").hide();
+				} else {
+					$("#error_old_exam").hide();
+					$("#error_exam_source").hide();
+					$("#success_exam").show();
+				}
+				 //else if($scope.exam_result == "Exam already done"){
+				// $("#error_old_exam").show();
+				// $("#success_exam").hide();
+			  //}
+				// else {
+				//	$("#success_exam").show();
+				//	$("#error_holder").hide();
+				//	}
+
+				$scope.exam_result = data;
+
+		});
+	}
 
 });
 
@@ -153,7 +196,7 @@ factory.queryAllGroups = function(callback){
 
 	factory.createTestForGroup = function(generator, callback){
 
-		var generator = generator.key+ "-"+ generator.groupId + "-" + generator.groupSize + "-" + generator.courseName + "-" + generator.teacherName + "-" + generator.deadlineTS;
+		  var generator = generator.key+ "-"+ generator.groupId + "-" + generator.groupSize + "-" + generator.courseName + "-" + generator.teacherName + "-" + generator.deadlineTS;
 
     	$http.get('/create_test_group/'+generator).success(function(output){
 			callback(output)
@@ -172,22 +215,23 @@ factory.queryAllGroups = function(callback){
   		});
   }
 
-//	factory.takeTheTest = function(data, callback){
-//
-//  		var testCaser = data.student + "-" + data.rate;
-//
-//      	$http.get('/take_test/'+testCase).success(function(output){
-//  			callback(output)
-//    });
-// }
-//	factory.acceptParsel = function(data, callback){
-//
-//		var parsel = data.id + "-" + data.sender + "-" + data.senderBranch + "-" + data.senderTS + "-" + data.receiver+ "-" + data.receiverBranch + "-" + data.receiverTS;
-//
-//    	$http.get('/add_parsel/'+parsel).success(function(output){
-//			callback(output)
-//		});
-//	}
+	factory.prepareForExam = function(exam, callback){
+
+		    var params = exam.group + "-"+ exam.course;
+
+				$http.get('/prepare_exam/'+params).success(function(output){
+				callback(output)
+			});
+	}
+
+	factory.takeTheTest = function(data, callback){
+
+  		var testCase = data.testId + "-" + data.student + "-"+ data.course + "-"+ data.rate;
+
+      $http.get('/take_test/'+testCase).success(function(output){
+  		callback(output)
+    });
+ }
 
 	return factory;
 });
