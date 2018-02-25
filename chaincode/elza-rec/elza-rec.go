@@ -370,15 +370,17 @@ func (s *SmartContract) takeTheTest(APIstub shim.ChaincodeStubInterface, args []
 	}
 
 	stestAsBytes, _ := APIstub.GetState(args[0])
-	if stestAsBytes == nil {
-		return shim.Error("Could not locate test")
-	}
+
+  if stestAsBytes == nil {
+ 	 return shim.Error("Could not locate unpassed test")
+  }
+
 	stest := Stest{}
 
 	json.Unmarshal(stestAsBytes, &stest)
 
 	if stest.Rate != "" {
-		return shim.Error(fmt.Sprintf("Exam already done"))
+		return shim.Error("Could not locate unpassed test")
 	}
 
 	// Normally check that the specified argument is a valid participant of exam
@@ -392,7 +394,7 @@ func (s *SmartContract) takeTheTest(APIstub shim.ChaincodeStubInterface, args []
 		return shim.Error(fmt.Sprintf("Failed to change status of exam: %s", args[0]))
 	}
 
-	return shim.Success(nil)
+	return shim.Success(stestAsBytes)
 }
 
 /*

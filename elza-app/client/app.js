@@ -17,15 +17,15 @@ app.controller('appController', function($scope, appFactory){
 	$("#error_query_student").hide();
 	$("#error_prepare_exam").hide();
 	$("#error_pass_exam").hide();
+
 	$("#error_exam_source").hide();
 	$("#error_old_exam").hide();
   $("#success_exam").hide();
 
-
 	$scope.queryAllGroups = function(){
 
 		appFactory.queryAllGroups(function(data){
-			var array = [];exam
+			var array = [];
 			for (var i = 0; i < data.length; i++){
 				parseInt(data[i].Key);
 				data[i].Record.Key = parseInt(data[i].Key);
@@ -37,6 +37,7 @@ app.controller('appController', function($scope, appFactory){
 			$scope.all_groups = array;
 		});
 	}
+
 
   $scope.queryAllTests = function(){
 
@@ -142,34 +143,19 @@ app.controller('appController', function($scope, appFactory){
 
   $scope.takeTheTest = function(){
 
-		appFactory.takeTheTest($scope.progress, function(data){
+    var progress = $scope.progress;
 
-				if ($scope.exam_result == "Could not locate test"){
+		appFactory.takeTheTest(progress, function(data){
+
+				if (data == "Could not locate unpassed test"){
 					$("#error_exam_source").show();
-					$("#error_old_exam").hide();
 					$("#success_exam").hide();
-				}
-
-				if ($scope.exam_result == "Could not locate test"){
-						$("#error_old_exam").show();
-						$("#error_exam_source").hide();
-						$("#success_exam").hide();
 				} else {
-					$("#error_old_exam").hide();
 					$("#error_exam_source").hide();
 					$("#success_exam").show();
 				}
-				 //else if($scope.exam_result == "Exam already done"){
-				// $("#error_old_exam").show();
-				// $("#success_exam").hide();
-			  //}
-				// else {
-				//	$("#success_exam").show();
-				//	$("#error_holder").hide();
-				//	}
 
 				$scope.exam_result = data;
-
 		});
 	}
 

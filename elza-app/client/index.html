@@ -74,12 +74,13 @@
     </header>
 
     <div id="body">
+
       <div class="form-group">
         <label>Query All Groups in College</label>
-        <p><input id="queryAllGroups" type="submit" value="Query" class="btn btn-primary" ng-click="queryAllGroups()"></p>
+        <p><input id="queryAllGroups" type="submit" value="Query Group" class="btn btn-primary" ng-click="queryAllGroups()"></p>
       </div>
 
-      <table id="all_groups" class="table" $("#error_query_id").hide();align="center">
+      <table id="all_groups" class="table" align="center">
 
         <tr>
           <th>ID</th>
@@ -88,13 +89,14 @@
           <th>GroupDescription</th>
         </tr>
 
-        <tr ng-repeat="group in all_groups">
-          <td>{{group.Key}}</td>
-          <td>{{group.groupId}}</td>
-          <td>{{group.groupName}}</td>
-          <td>{{group.groupDesc}}</td>
+        <tr ng-repeat="grp in all_groups">
+          <td>{{grp.Key}}</td>
+          <td>{{grp.groupId}}</td>
+          <td>{{grp.groupName}}</td>
+          <td>{{grp.groupDesc}}</td>
         </tr>
       </table>
+
 
       <div class="form-group">
         <label>Query All Tests in College</label>
@@ -122,7 +124,7 @@
           <td>{{stest.teacher}}</td>
           <td>{{stest.student}}</td>
           <td>{{stest.stestTS}}</td>
-          <td>{{s        </td>
+          <td>{{stest.rate}}</td>
         </tr>
       </table>
 
@@ -150,7 +152,7 @@
       <table id="query_test_id" class="table" align="center">
 
         <tr>
-          <th>ID</th>
+          <!--th>ID</th-->
           <th>Test Id</th>
           <th>Group</th>
           <th>Course</th>
@@ -161,7 +163,7 @@
         </tr>
 
         <tr>
-          <td>{{query_test_id.Key}}</td>
+          <!--td>{{query_test_id.Key}}</td-->
           <td>{{query_test_id.testId}}</td>
           <td>{{query_test_id.group}}</td>
           <td>{{query_test_id.course}}</td>
@@ -200,26 +202,8 @@
           <td>{{stest.stestTS}}</td>
           <td>{{stest.stestDesc}}</td>
           <!--td><input id="takeTest" type="submit" value="Take it!" class="btn btn-primary" ng-model="stest"  ng-click="takeTheTest()"></td-->
-
         </tr>
       </table>
-
-<!--
-      <div class="form-group">
-        <label>Accept: Create Inital Parsel Record</label>
-        <h5 style="color:green;margin-bottom:2%" id="success_create">Success! Tx ID: {{add_parsel}}</h5>
-
-        <br>
-        Enter parsel id: <input class="form-control" type="text" placeholder="Ex: 211" ng-model="parsel.id">
-        Enter sender name: <input class="form-control" type="text" placeholder="Ex: John" ng-model="parsel.sender">
-        Enter sender branch: <input class="form-control" type="text" placeholder="Ex: 002" ng-model="parsel.senderBranch">
-        Enter sender timestamp: <input class="form-control" type="text" placeholder="Ex: 4982342301" ng-model="parsel.senderTS">
-        Enter receiver name: <input class="form-control" type="text" placeholder="Ex: John" ng-model="parsel.receiver">
-        Enter receiver branch: <input class="form-control" type="text" placeholder="Ex: 002" ng-model="parsel.receiverBranch">
-		Enter receiver timestamp: <input class="form-control" type="text" placeholder="Ex: 4982342301" ng-model="parsel.receiverTS">
-        <input id="createSubmit" type="submit" value="Create" class="btn btn-primary" ng-click="acceptParsel()">
-      </div>
--->
 
     </div>
   </body>
