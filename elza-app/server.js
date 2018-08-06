@@ -30,7 +30,7 @@ require('./routes.js')(app);
 app.use(express.static(path.join(__dirname, './client')));
 
 // Save our port
-var port = process.env.PORT || 8008;
+var port = process.env.PORT || 8080;
 
 // Start the server and listen on port 
 app.listen(port,function(){
